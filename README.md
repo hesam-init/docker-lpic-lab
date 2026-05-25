@@ -117,7 +117,7 @@ ssh root@172.30.0.10
 | Compression | `tar` `gzip` `bzip2` `xz-utils` `zip` `unzip` |
 | Text processing | `grep` `sed` `gawk` `diffutils` `patch` |
 | Package management | `apt-utils` `aptitude` `dpkg-dev` |
-| Users & permissions | `sudo` `acl` `passwd` `shadow` |
+| Users & permissions | `sudo` `acl` `passwd` `login` |
 | Boot & init | `systemd` `grub2-common` |
 | Logging | `rsyslog` `logrotate` |
 | Scripting | `bash` `python3` `perl` `git` `make` `gcc` |
