@@ -1,0 +1,81 @@
+name: lpic-lab
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Networks
+# ─────────────────────────────────────────────────────────────────────────────
+networks:
+  lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Volumes  (only for persistent containers)
+# ─────────────────────────────────────────────────────────────────────────────
+volumes:
+  lab-home: # /root home dir — survives container restarts
+  lab-storage: # extra "disk" to practice partitioning / LVM / etc.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Services
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  # ── PERSISTENT lab node ────────────────────────────────────────────────────
+  # Use this for day-to-day LPIC study. Data survives restart/stop.
+  lab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    image: lpic-lab:latest
+    container_name: lpic-lab
+    hostname: lpic-lab
+    restart: unless-stopped
+    privileged: true # needed for iptables / LVM / mount labs
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      lab-net:
+        ipv4_address: 172.30.0.10
+    ports:
+      - "2222:22" # ssh root@localhost -p 2222  (pass: lpic)
+    volumes:
+      - lab-home:/root # persist home across restarts
+      - lab-storage:/mnt/storage # second "disk" for storage labs
+      - ./scripts:/root/scripts:ro # optional: mount your own lab scripts
+    environment:
+      - TZ=Asia/Tehran
+    stdin_open: true
+    tty: true
+
+  # ── EPHEMERAL sandbox ─────────────────────────────────────────────────────
+  # Spun up for quick throwaway experiments.
+  # Run:  docker compose run --rm sandbox
+  # Everything is gone when you exit — no volumes, no restart.
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lpic-lab:latest
+    container_name: lpic-sandbox
+    hostname: lpic-sandbox
+    restart: "no" # never auto-restart
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - lab-net
+    environment:
+      - TZ=Asia/Tehran
+    # No named volumes — all changes vanish on exit
+    tmpfs:
+      - /tmp
+    stdin_open: true
+    tty: true
+    profiles:
+      - sandbox # not started by default; use --profile sandbox
